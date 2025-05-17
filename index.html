@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Beautiful Analog Clock</title>
+  <style>
+    body {
+      margin: 200px 0px;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(#222, #111);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .clock {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      border: 10px solid #fff;
+      border-radius: 50%;
+      background: #000;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    }
+
+    .center {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom;
+      transform: rotate(0deg);
+    }
+
+    .hour {
+      width: 6px;
+      height: 70px;
+      background: #e74c3c;
+      z-index: 4;
+    }
+
+    .minute {
+      width: 4px;
+      height: 100px;
+      background: #f1c40f;
+      z-index: 3;
+    }
+
+    .second {
+      width: 2px;
+      height: 120px;
+      background: #1abc9c;
+      z-index: 2;
+    }
+
+    .marker {
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    .marker.big {
+      width: 10px;
+      height: 10px;
+    }
+
+    .marker.small {
+      width: 6px;
+      height: 6px;
+    }
+
+    .info {
+      position: absolute;
+      bottom: 35px;
+      width: 100%;
+      text-align: center;
+      color: #ecf0f1;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock">
+    <div class="hand hour" id="hour"></div>
+    <div class="hand minute" id="minute"></div>
+    <div class="hand second" id="second"></div>
+    <div class="center"></div>
+
+    <!-- 12 markers -->
+    <script>
+      const clock = document.querySelector('.clock');
+      const centerX = 160;
+      const centerY = 160;
+      const markerDistance = 140;
+
+      for (let i = 0; i < 12; i++) {
+        const marker = document.createElement('div');
+        const angle = (i * 30) * Math.PI / 180;
+        const x = centerX + markerDistance * Math.cos(angle - Math.PI/2);
+        const y = centerY + markerDistance * Math.sin(angle - Math.PI/2);
+
+        marker.classList.add('marker');
+        marker.classList.add(i % 3 === 0 ? 'big' : 'small');
+        marker.style.left = `${x - (i % 3 === 0 ? 5 : 3)}px`;
+        marker.style.top = `${y - (i % 3 === 0 ? 5 : 3)}px`;
+
+        clock.appendChild(marker);
+      }
+    </script>
+
+    <div class="info">
+      <div id="date">Loading date...</div>
+      <div id="location">Loading location...</div>
+      <div id="timezone" hidden="True">Loading timezone...</div>
+    </div>
+  </div>
+
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const minutes = now.getMinutes();
+      const hours = now.getHours();
+
+      const secDeg = seconds * 6;
+      const minDeg = minutes * 6 + seconds * 0.1;
+      const hourDeg = ((hours % 12) * 30) + (minutes * 0.5);
+
+      document.getElementById('second').style.transform = `rotate(${secDeg}deg)`;
+      document.getElementById('minute').style.transform = `rotate(${minDeg}deg)`;
+      document.getElementById('hour').style.transform = `rotate(${hourDeg}deg)`;
+
+      document.getElementById('date').textContent = now.toDateString();
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('location').textContent = `${data.city}, ${data.country_name}`;
+        document.getElementById('timezone').textContent = data.timezone;
+      })
+      .catch(() => {
+        document.getElementById('location').textContent = 'Location unavailable';
+        document.getElementById('timezone').textContent = 'Timezone unavailable';
+      });
+  </script>
+</body>
+</html>
